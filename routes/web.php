@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdvanceController;
 use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Route;
 
 //打刻ページ
 Route::get('/', [AdvanceController::class, 'index'])->middleware('auth')->middleware('verified')->name('index');
@@ -16,12 +16,9 @@ Route::get('/attendance', [AdvanceController::class, 'attendance'])->middleware(
 Route::get('/attendance_nextdate', [AdvanceController::class, 'attendanceNextdate'])->name('attendance_nextdate');
 Route::get('/attendance_beforedate', [AdvanceController::class, 'attendanceBeforedate'])->name('attendance_beforedate');
 
-
-
 //ユーザー一覧ページ
 Route::get('/user', [UserController::class, 'index'])->middleware('auth')->name('user.index');
 //ユーザーごとの勤怠表が見れるページ
 Route::get('/user/show/{id}', [UserController::class, 'show'])->middleware('auth')->name('user.show');
 
-require __DIR__ . '/auth.php';
-
+require __DIR__.'/auth.php';

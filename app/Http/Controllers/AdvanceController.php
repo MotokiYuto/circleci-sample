@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class AdvanceController extends Controller
 {
@@ -13,6 +13,7 @@ class AdvanceController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
+
         return view('auth.index', compact('user'));
     }
 
@@ -28,6 +29,7 @@ class AdvanceController extends Controller
 
         if ($data) {
             $request->session()->flash('error_message', '既に勤務を開始しているため勤務開始出来ません');
+
             return redirect(route('index'));
         }
 
@@ -35,10 +37,11 @@ class AdvanceController extends Controller
             [
                 'user_id' => Auth::user()['id'],
                 'date' => Carbon::now(),
-                'punch_in' => Carbon::now()
+                'punch_in' => Carbon::now(),
             ]
         );
         $request->session()->flash('success_message', '勤務開始しました');
+
         return redirect(route('index'));
     }
 
@@ -55,6 +58,7 @@ class AdvanceController extends Controller
             ->first();
         if ($times_data === null) {
             $request->session()->flash('error_message', '今日またはそれ以前の勤務開始打刻がないため勤務終了出来ません');
+
             return redirect(route('index'));
         }
 
@@ -66,6 +70,7 @@ class AdvanceController extends Controller
             ->first();
         if ($rests_data) {
             $request->session()->flash('error_message', '休憩終了打刻をしていないため勤務終了出来ません');
+
             return redirect(route('index'));
         }
 
@@ -79,6 +84,7 @@ class AdvanceController extends Controller
                 'work_time' => $work_time,
             ]);
         $request->session()->flash('success_message', '勤務終了しました');
+
         return redirect(route('index'));
     }
 
@@ -96,6 +102,7 @@ class AdvanceController extends Controller
 
         if ($data === null) {
             $request->session()->flash('error_message', '勤務開始打刻をしていないため休憩開始出来ません');
+
             return redirect(route('index'));
         }
 
@@ -108,19 +115,21 @@ class AdvanceController extends Controller
 
         if ($data4) {
             $request->session()->flash('error_message', '既に休憩開始ボタンを押しているため休憩開始出来ません');
+
             return redirect(route('index'));
         }
 
         DB::table('rests')->insert(
             [
-                'user_id' => Auth::user()['id'], 
+                'user_id' => Auth::user()['id'],
                 'date' => Carbon::now(),
                 'break_start' => Carbon::now(),
-                'time_id' => $data->id
+                'time_id' => $data->id,
             ]
         );
 
         $request->session()->flash('success_message', '休憩開始しました');
+
         return redirect(route('index'));
     }
 
@@ -138,6 +147,7 @@ class AdvanceController extends Controller
 
         if ($times_data === null) {
             $request->session()->flash('error_message', '出勤開始打刻をしていないため休憩終了出来ません');
+
             return redirect(route('index'));
         }
 
@@ -150,6 +160,7 @@ class AdvanceController extends Controller
 
         if ($rests_data === null) {
             $request->session()->flash('error_message', '休憩開始打刻をしていないため休憩終了出来ません');
+
             return redirect(route('index'));
         }
 
@@ -157,6 +168,7 @@ class AdvanceController extends Controller
             ->where('id', $rests_data->id)
             ->update(['break_end' => Carbon::now()]);
         $request->session()->flash('success_message', '休憩終了しました');
+
         return redirect(route('index'));
     }
 
@@ -180,18 +192,16 @@ class AdvanceController extends Controller
             ->get()
             ->all();
 
-        
-
         $today_kari
             = [
                 'today' => '日付',
                 'times_data' => [],
-                'rest_data' => []
+                'rest_data' => [],
             ];
 
         if (is_array($all_date) && empty($all_date)) {
             $request->session()->flash('error_message', '打刻データがありません');
-            
+
             return view('auth.attendance', $today_kari);
         }
 
@@ -209,13 +219,12 @@ class AdvanceController extends Controller
 
         $calclate_rest_data = [];
         foreach ($rests_data as $key => $rest) {
-            if (!empty($rest->break_start) && !empty($rest->break_end)) {
+            if (! empty($rest->break_start) && ! empty($rest->break_end)) {
                 $from = strtotime($rest->break_start);
-                $to   = strtotime($rest->break_end);
+                $to = strtotime($rest->break_end);
                 if (isset($calclate_rest_data[$rest->time_id])) {
                     $rest_time_tmp = $calclate_rest_data[$rest->time_id];
-                }
-                else {
+                } else {
                     $rest_time_tmp = '';
                 }
                 $rest_time = $this->time_diff($from, $to);
@@ -225,7 +234,7 @@ class AdvanceController extends Controller
         $param = [
             'today' => $latest_punch_in_date->date,
             'times_data' => $times_data,
-            'rest_data' => $calclate_rest_data
+            'rest_data' => $calclate_rest_data,
         ];
 
         return view('auth.attendance', $param);
@@ -244,7 +253,7 @@ class AdvanceController extends Controller
             $request->session()->flash('error_message', '打刻データがありません');
         }
 
-        $tommorow = date('Y-m-d', strtotime($request->date . ' +1 day'));
+        $tommorow = date('Y-m-d', strtotime($request->date.' +1 day'));
 
         $times_data = DB::table('times')
             ->leftJoin('users', 'users.id', '=', 'times.user_id')
@@ -257,9 +266,9 @@ class AdvanceController extends Controller
             ->get();
         $calclate_rest_data = [];
         foreach ($rests_data as $key => $rest) {
-            if (!empty($rest->break_start) && !empty($rest->break_end)) {
+            if (! empty($rest->break_start) && ! empty($rest->break_end)) {
                 $from = strtotime($rest->break_start);
-                $to   = strtotime($rest->break_end);
+                $to = strtotime($rest->break_end);
                 if (isset($calclate_rest_data[$rest->time_id])) {
                     $rest_time_tmp = $calclate_rest_data[$rest->time_id];
                 } else {
@@ -272,7 +281,7 @@ class AdvanceController extends Controller
         $param = [
             'today' => $tommorow,
             'times_data' => $times_data,
-            'rest_data' => $calclate_rest_data
+            'rest_data' => $calclate_rest_data,
         ];
 
         return view('auth.attendance', $param);
@@ -291,7 +300,7 @@ class AdvanceController extends Controller
             $request->session()->flash('error_message', '打刻データがありません');
         }
 
-        $yesterday = date('Y-m-d', strtotime($request->date . ' -1 day'));
+        $yesterday = date('Y-m-d', strtotime($request->date.' -1 day'));
         $times_data = DB::table('times')
             ->leftJoin('users', 'users.id', '=', 'times.user_id')
             ->whereDate('times.date', $yesterday)
@@ -303,13 +312,12 @@ class AdvanceController extends Controller
             ->get();
         $calclate_rest_data = [];
         foreach ($rests_data as $key => $rest) {
-            if (!empty($rest->break_start) && !empty($rest->break_end)) {
+            if (! empty($rest->break_start) && ! empty($rest->break_end)) {
                 $from = strtotime($rest->break_start);
-                $to   = strtotime($rest->break_end);
+                $to = strtotime($rest->break_end);
                 if (isset($calclate_rest_data[$rest->time_id])) {
                     $rest_time_tmp = $calclate_rest_data[$rest->time_id];
-                }
-                else {
+                } else {
                     $rest_time_tmp = '';
                 }
                 $rest_time = $this->time_diff($from, $to);
@@ -319,7 +327,7 @@ class AdvanceController extends Controller
         $param = [
             'today' => $yesterday,
             'times_data' => $times_data,
-            'rest_data' => $calclate_rest_data
+            'rest_data' => $calclate_rest_data,
         ];
 
         return view('auth.attendance', $param);
@@ -328,29 +336,32 @@ class AdvanceController extends Controller
     private function time_diff($time_from, $time_to)
     {
         $time = $time_to - $time_from;
-        return gmdate("H:i:s", $time);
+
+        return gmdate('H:i:s', $time);
     }
 
     private function time_plus($time_from, $time_to)
     {
         $time = $time_to + $time_from;
-        return gmdate("H:i:s", $time);
+
+        return gmdate('H:i:s', $time);
     }
 
     private function hour_to_sec(string $str): int
     {
-        $t = explode(":", $str);
-        $h = (int)$t[0];
+        $t = explode(':', $str);
+        $h = (int) $t[0];
         if (isset($t[1])) {
-            $m = (int)$t[1];
+            $m = (int) $t[1];
         } else {
             $m = 0;
         }
         if (isset($t[2])) {
-            $s = (int)$t[2];
+            $s = (int) $t[2];
         } else {
             $s = 0;
         }
+
         return ($h * 60 * 60) + ($m * 60) + $s;
     }
 }
